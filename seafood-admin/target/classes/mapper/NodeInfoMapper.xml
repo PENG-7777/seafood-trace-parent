@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.peng.admin.mapper.NodeInfoMapper">
+
+    <select id="selectNodePage" resultType="com.peng.admin.vo.NodeVO">
+        SELECT
+        ni.node_id,
+        ni.code,
+        ni.name,
+        ni.type,
+        CASE ni.type
+        WHEN 1 THEN '捕捞企业'
+        WHEN 2 THEN '养殖企业'
+        WHEN 3 THEN '冷冻加工企业'
+        WHEN 4 THEN '批发商'
+        WHEN 5 THEN '零售商'
+        END AS type_name,
+        ni.prov_id,
+        p.prov_name,
+        ni.city_id,
+        c.city_name,
+        ni.address,
+        ni.business_id,
+        ni.fishing_lic,
+        ni.aquaculture_lic,
+        ni.food_business_lic,
+        ni.corporation,
+        ni.telephone,
+        ni.reg_date,
+        ni.remarks
+        FROM node_info ni
+        LEFT JOIN province p ON ni.prov_id = p.prov_id
+        LEFT JOIN city c ON ni.city_id = c.city_id
+        <where>
+            <if test="name != null and name != ''">
+                ni.name LIKE CONCAT('%',#{name},'%')
+            </if>
+            <if test="type != null">
+                ni.type = #{type}
+            </if>
+        </where>
+        ORDER BY ni.node_id DESC
+    </select>
+
+</mapper>

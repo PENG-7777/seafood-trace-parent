@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.peng.node.mapper.CityMapper">
+    <select id="selectByProvId" resultType="com.peng.node.entity.City">
+        select city_id, prov_id, city_name
+        from city
+        where prov_id = #{provId}
+        order by city_id asc
+    </select>
+</mapper>

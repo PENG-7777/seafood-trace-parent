@@ -1,0 +1,20 @@
+server:
+  port: 8082
+spring:
+  application:
+    name: seafood-node
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/seafood_trace?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+mybatis-plus:
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+jwt:
+  secret: c2VhZm9vZG5vZGVzZWNyZXQxMjM0NTY3ODkwMTIzNDU2Nzg5MA==
+  expire-time: 86400000 # 24???????
+

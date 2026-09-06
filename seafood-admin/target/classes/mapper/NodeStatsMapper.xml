@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.peng.admin.mapper.NodeStatsMapper">
+
+    <!-- 1.企业注册数量趋势：按天分组统计注册数量 -->
+    <select id="selectRegisterTrend" resultType="com.peng.admin.vo.RegisterTrendVO">
+        SELECT
+        DATE_FORMAT(reg_date, '%Y-%m-%d') AS register_date,
+        COUNT(*) AS count
+        FROM node_info
+        <where>
+            <if test="startDate != null and startDate != ''">
+                AND reg_date &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND reg_date &lt;= #{endDate}
+            </if>
+        </where>
+        GROUP BY DATE_FORMAT(reg_date, '%Y-%m-%d')
+        ORDER BY register_date ASC
+    </select>
+
+    <!-- 2.省分组注册数量分布：关联省份表取中文名称 -->
+    <select id="selectProvDistribution" resultType="com.peng.admin.vo.ProvStatsVO">
+        SELECT
+            ni.prov_id AS prov_id,
+            p.prov_name AS prov_name,
+            COUNT(*) AS count
+        FROM node_info ni
+            LEFT JOIN province p ON ni.prov_id = p.prov_id
+        GROUP BY ni.prov_id, p.prov_name
+        ORDER BY count DESC
+    </select>
+
+    <!-- 3.企业类型分组注册数量分布 -->
+    <select id="selectTypeDistribution" resultType="com.peng.admin.vo.TypeStatsVO">
+        SELECT
+            type,
+            COUNT(*) AS count
+        FROM node_info
+        GROUP BY type
+        ORDER BY count DESC
+    </select>
+
+    <!-- 4.省分组注册数量统计：带总数，供前端计算占比 -->
+    <select id="selectProvStats" resultType="com.peng.admin.vo.ProvStatsVO">
+        SELECT
+            ni.prov_id AS prov_id,
+            p.prov_name AS prov_name,
+            COUNT(*) AS count
+        FROM node_info ni
+            LEFT JOIN province p ON ni.prov_id = p.prov_id
+        GROUP BY ni.prov_id, p.prov_name
+        ORDER BY count DESC
+    </select>
+
+</mapper>
