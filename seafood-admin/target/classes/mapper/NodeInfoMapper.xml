@@ -34,10 +34,14 @@
         LEFT JOIN city c ON ni.city_id = c.city_id
         <where>
             <if test="name != null and name != ''">
-                ni.name LIKE CONCAT('%',#{name},'%')
+                AND ni.name LIKE CONCAT('%',#{name},'%')
             </if>
             <if test="type != null">
-                ni.type = #{type}
+                AND ni.type = #{type}
+            </if>
+            <!-- 新增省份筛选：根据prov_id过滤节点企业 -->
+            <if test="provId != null">
+                AND ni.prov_id = #{provId}
             </if>
         </where>
         ORDER BY ni.node_id DESC

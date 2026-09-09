@@ -26,7 +26,7 @@ public class TraceController {
      * @return Result<TraceVO> 完整链路数据
      */
     @GetMapping("/query")
-    public Result<TraceVO> queryTrace(@RequestParam("sourceId") String sourceId) {
+    public Result<TraceVO> queryTrace(@RequestParam(value = "sourceId",required = false) String sourceId) {
         TraceVO traceVO = traceService.getTraceInfoBySourceId(sourceId);
         return Result.ok(traceVO);
     }

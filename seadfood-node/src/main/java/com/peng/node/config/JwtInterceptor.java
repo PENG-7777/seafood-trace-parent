@@ -10,12 +10,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-
 import java.io.PrintWriter;
 
 /**
  * 企业用户JWT Token拦截器
- * 对所有/api/node下接口做token鉴权，放行登录接口
+ * 对所有/api/node下接口做token鉴权，放行登录接口、大屏统计接口 /api/node/stats/dashboard
  */
 @Component
 public class JwtInterceptor implements HandlerInterceptor {
@@ -40,7 +39,14 @@ public class JwtInterceptor implements HandlerInterceptor {
         String uri = request.getRequestURI();
         System.out.println("当前请求uri：" + uri);
 
-        // 下面保留你原来的Token校验逻辑即可
+        // ===================== 新增放行判断 =====================
+        // 放行大屏统计接口：/api/node/stats/dashboard
+        if ("/api/node/stats/dashboard".equals(uri)) {
+            return true;
+        }
+        // ======================================================
+
+        // Token校验逻辑
         String token = request.getHeader("token");
         if (token == null || token.isBlank()) {
             writeUnauthorizedResponse(response);
@@ -56,7 +62,6 @@ public class JwtInterceptor implements HandlerInterceptor {
         request.setAttribute("nodeType", nodeType);
         return true;
     }
-
 
     /**
      * 输出401未登录响应JSON

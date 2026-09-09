@@ -2,10 +2,14 @@ package com.peng.node.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.peng.node.entity.WholBatch;
+import com.peng.node.vo.RetailApplyVO;
+import com.peng.node.vo.SourceBatchVO;
+
 import java.util.List;
 
 /**
  * 批发商批号业务接口
+ * 业务链路：上游=冷冻加工企业(process_batch)，下游=零售商(reta_batch)
  */
 public interface WholBatchService extends IService<WholBatch> {
 
@@ -59,4 +63,19 @@ public interface WholBatchService extends IService<WholBatch> {
      * @param nodeId 当前登录批发商企业id（权限校验）
      */
     void confirmRetaBatch(Integer retaBatchId, Integer nodeId);
+
+    /**
+     * 根据上游冷冻加工企业ID，下拉查询该企业【state=3已确认】的加工成品批号
+     * 用于新增批发商页面二级联动下拉选择上游原料
+     * @param sourceNodeId 上游冷冻加工企业编号
+     * @return 上游原料下拉VO列表
+     */
+    List<SourceBatchVO> getUpstreamProcessBatchByNodeId(Integer sourceNodeId);
+
+    /**
+     * 查询提交给当前登录批发商的所有零售商进场申请列表
+     * @param nodeId 当前登录批发商企业ID
+     * @return 零售商申请VO集合
+     */
+    List<RetailApplyVO> getRetaApplyList(Integer nodeId);
 }

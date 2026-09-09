@@ -17,10 +17,11 @@ public interface NodeInfoMapper extends BaseMapper<NodeInfo> {
      * @param page 分页对象
      * @param name 企业名称模糊查询条件
      * @param type 企业类型筛选条件
+     * @param provId 省份编号筛选条件
      * @return 分页VO结果
      */
     IPage<NodeVO> selectNodePage(Page<NodeVO> page,
                                  @Param("name") String name,
-                                 @Param("type") Integer type);
+                                 @Param("type") Integer type,
+                                 @Param("provId") Integer provId);
 }
-

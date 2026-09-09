@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/dict")
+@RequestMapping("/api/admin/dict")
 public class DictController {
 
     @Resource

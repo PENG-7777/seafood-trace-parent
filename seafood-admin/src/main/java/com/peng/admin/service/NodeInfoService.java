@@ -18,9 +18,10 @@ public interface NodeInfoService extends IService<NodeInfo> {
      * @param pageSize 每页条数
      * @param name 企业名称模糊关键词
      * @param type 企业类型筛选
+     * @param provId 省份编号筛选
      * @return 分页VO
      */
-    IPage<NodeVO> getNodePage(Long pageNum, Long pageSize, String name, Integer type);
+    IPage<NodeVO> getNodePage(Long pageNum, Long pageSize, String name, Integer type, Integer provId);
 
     /**
      * 新增/编辑保存企业信息
@@ -35,4 +36,3 @@ public interface NodeInfoService extends IService<NodeInfo> {
      */
     NodeVO getNodeDetailById(Integer nodeId);
 }
-

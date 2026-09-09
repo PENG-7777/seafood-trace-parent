@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 接口前缀：/api/node/stats
  */
 @RestController
-@RequestMapping("/api/node/stats")
+@RequestMapping("/api/admin/node/stats")
 public class NodeStatsController {
 
     @Resource

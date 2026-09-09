@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.peng.node.mapper.RetaBatchMapper">
+    <select id="selectRetaApplyListByWholNodeId" resultType="com.peng.node.vo.RetailApplyVO">
+        SELECT
+            rb.rb_id AS retaBatchId,
+            rb.wb_id AS wholBatchId,
+            ni.name AS retaNodeName,
+            rb.update_time AS applyTime,
+            rb.state AS applyState
+        FROM reta_batch rb
+                 INNER JOIN whol_batch wb ON rb.wb_id = wb.wb_id
+                 INNER JOIN node_info ni ON rb.node_id = ni.node_id
+        WHERE wb.node_id = #{wholNodeId}
+          AND rb.state IN (2,3)
+        ORDER BY rb.update_time DESC
+    </select>
+</mapper>

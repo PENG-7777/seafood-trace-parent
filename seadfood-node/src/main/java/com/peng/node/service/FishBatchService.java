@@ -2,6 +2,9 @@ package com.peng.node.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.peng.node.entity.FishBatch;
+import com.peng.node.entity.NodeInfo;
+import com.peng.node.vo.ProcessApplyVO;
+
 import java.util.List;
 
 /**
@@ -51,4 +54,9 @@ public interface FishBatchService extends IService<FishBatch> {
      * @param nodeId 当前登录捕捞企业id（权限校验）
      */
     void confirmProcessBatch(Integer processBatchId, Integer nodeId);
+
+    List<ProcessApplyVO> getProcessApplyList(Integer nodeId);
+
+
+
 }

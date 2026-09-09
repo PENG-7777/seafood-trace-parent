@@ -1,11 +1,14 @@
 package com.peng.node.controller;
 
 import com.peng.node.entity.FishBatch;
+import com.peng.node.entity.NodeInfo;
+import com.peng.node.vo.ProcessApplyVO;
 import com.peng.node.service.FishBatchService;
 import com.peng.node.util.Result;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 /**
@@ -29,6 +32,18 @@ public class FishBatchController {
         Integer nodeId = (Integer) request.getAttribute("nodeId");
         List<FishBatch> list = fishBatchService.getMyBatchList(nodeId);
         return Result.ok(list);
+    }
+
+    /**
+     * 【新增接口】获取下游加工企业进场申请列表
+     * @param request 获取当前登录捕捞企业nodeId
+     * @return 进场申请VO集合
+     */
+    @GetMapping("/getProcessApplyList")
+    public Result<List<ProcessApplyVO>> getProcessApplyList(HttpServletRequest request){
+        Integer nodeId = (Integer) request.getAttribute("nodeId");
+        List<ProcessApplyVO> applyList = fishBatchService.getProcessApplyList(nodeId);
+        return Result.ok(applyList);
     }
 
     /**
@@ -95,4 +110,5 @@ public class FishBatchController {
         fishBatchService.confirmProcessBatch(processBatchId, nodeId);
         return Result.ok();
     }
+
 }

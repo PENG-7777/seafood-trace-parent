@@ -3,14 +3,17 @@ package com.peng.node.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.peng.node.entity.FishBatch;
+import com.peng.node.entity.NodeInfo;
 import com.peng.node.entity.ProcessBatch;
 import com.peng.node.mapper.FishBatchMapper;
+import com.peng.node.mapper.NodeInfoMapper;
 import com.peng.node.mapper.ProcessBatchMapper;
 import com.peng.node.service.FishBatchService;
+import com.peng.node.vo.ProcessApplyVO;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.annotation.Resource;
 import java.util.List;
 
 /**
@@ -24,6 +27,12 @@ public class FishBatchServiceImpl extends ServiceImpl<FishBatchMapper, FishBatch
      */
     @Resource
     private ProcessBatchMapper processBatchMapper;
+
+    /**
+     * 节点企业Mapper，查询捕捞企业信息
+     */
+    @Resource
+    private NodeInfoMapper nodeInfoMapper;
 
     /**
      * 查询当前捕捞企业自己的批号列表
@@ -157,4 +166,13 @@ public class FishBatchServiceImpl extends ServiceImpl<FishBatchMapper, FishBatch
         processBatch.setState(3);
         processBatchMapper.updateById(processBatch);
     }
+
+    @Override
+    public List<ProcessApplyVO> getProcessApplyList(Integer nodeId) {
+        //根据当前捕捞企业nodeId，查询所有待确认/已确认的加工进场申请
+        return baseMapper.selectApplyListByNodeId(nodeId);
+    }
+
+
+
 }

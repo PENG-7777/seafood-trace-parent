@@ -5,6 +5,7 @@ import com.peng.node.entity.NodeInfo;
 import com.peng.node.vo.NodeLoginVO;
 import com.peng.node.vo.UpdatePwdVO;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,4 +27,12 @@ public interface NodeInfoService extends IService<NodeInfo> {
      * @param updatePwdVO 修改密码参数：旧密码、新密码、确认密码
      */
     void updatePassword(Integer nodeId, UpdatePwdVO updatePwdVO);
+
+    /**
+     * 根据下游企业类型，查询它所有合法上游源头企业
+     * @param targetNodeType 当前操作企业类型 3加工 /4批发 /5零售
+     * @return 上游企业列表
+     */
+    List<NodeInfo> getUpstreamNodeList(Integer targetNodeType);
+
 }

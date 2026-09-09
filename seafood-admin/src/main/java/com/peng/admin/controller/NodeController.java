@@ -10,14 +10,12 @@ import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-
-
 /**
  * 流通节点企业管理控制器
- * 接口前缀：/api/node
+ * 接口前缀：/api/admin/node
  */
 @RestController
-@RequestMapping("/api/node")
+@RequestMapping("/api/admin/node")
 public class NodeController {
 
     @Resource
@@ -28,15 +26,17 @@ public class NodeController {
      * @param pageNum 页码，默认1
      * @param pageSize 每页条数，默认10
      * @param name 企业名称模糊检索（可选）
-     * @param type 企业类型筛选（可选：1捕捞/2养殖/3批发/4零售）
+     * @param type 企业类型筛选（可选：1捕捞/2养殖/3加工/4批发/5零售）
+     * @param provId 省份编号筛选（可选）
      * @return 分页VO数据
      */
     @GetMapping("/page")
     public Result<IPage<NodeVO>> page(@RequestParam(defaultValue = "1") Long pageNum,
                                       @RequestParam(defaultValue = "10") Long pageSize,
                                       @RequestParam(required = false) String name,
-                                      @RequestParam(required = false) Integer type) {
-        IPage<NodeVO> pageResult = nodeInfoService.getNodePage(pageNum, pageSize, name, type);
+                                      @RequestParam(required = false) Integer type,
+                                      @RequestParam(required = false) Integer provId) {
+        IPage<NodeVO> pageResult = nodeInfoService.getNodePage(pageNum, pageSize, name, type, provId);
         return ResultUtil.success(pageResult);
     }
 
@@ -74,4 +74,3 @@ public class NodeController {
     }
 
 }
-

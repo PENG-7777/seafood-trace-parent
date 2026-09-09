@@ -2,6 +2,8 @@ package com.peng.node.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.peng.node.entity.FarmSeaBatch;
+import com.peng.node.entity.ProcessBatch;
+
 import java.util.List;
 
 /**
@@ -51,4 +53,12 @@ public interface FarmSeaBatchService extends IService<FarmSeaBatch> {
      * @param nodeId 当前登录养殖企业id（权限校验）
      */
     void confirmProcessBatch(Integer processBatchId, Integer nodeId);
+
+    /**
+     * 查询当前养殖企业下【待确认】的冷冻加工进场申请列表
+     * @param nodeId 当前登录养殖企业ID
+     * @return 加工申请单集合（ProcessBatch，附带加工企业nodeName）
+     */
+    List<ProcessBatch> getProcessApplyList(Integer nodeId);
+
 }

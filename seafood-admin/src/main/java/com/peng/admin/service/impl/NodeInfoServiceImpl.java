@@ -13,8 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-
-
 /**
  * 流通节点企业业务实现类
  */
@@ -27,12 +25,12 @@ public class NodeInfoServiceImpl extends ServiceImpl<NodeInfoMapper, NodeInfo> i
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     /**
-     * 分页查询企业列表
+     * 分页查询企业列表（新增省份筛选provId）
      */
     @Override
-    public IPage<NodeVO> getNodePage(Long pageNum, Long pageSize, String name, Integer type) {
+    public IPage<NodeVO> getNodePage(Long pageNum, Long pageSize, String name, Integer type, Integer provId) {
         Page<NodeVO> page = new Page<>(pageNum, pageSize);
-        return nodeInfoMapper.selectNodePage(page, name, type);
+        return nodeInfoMapper.selectNodePage(page, name, type, provId);
     }
 
     /**
@@ -41,7 +39,7 @@ public class NodeInfoServiceImpl extends ServiceImpl<NodeInfoMapper, NodeInfo> i
     @Override
     public void saveOrUpdateNode(NodeSaveDTO dto) {
         NodeInfo entity = new NodeInfo();
-        // 编辑模式：主键赋值
+        // 编辑模式：主键赋值，从数据库查询旧数据
         if(dto.getNodeId() != null){
             entity = this.getById(dto.getNodeId());
         }
@@ -63,10 +61,17 @@ public class NodeInfoServiceImpl extends ServiceImpl<NodeInfoMapper, NodeInfo> i
         entity.setRegDate(dto.getRegDate());
         entity.setRemarks(dto.getRemarks());
 
-        // 密码逻辑：有传入明文密码才加密更新；编辑不传密码则保留原有密码
+        // ==========密码逻辑修改============
         if(StringUtils.hasText(dto.getPassword())){
+            // 前端传入密码，使用传入的密码加密
             String encryptPwd = passwordEncoder.encode(dto.getPassword());
             entity.setPassword(encryptPwd);
+        }else{
+            // 【新增场景】dto没有传密码，设置默认密码123456
+            if(dto.getNodeId() == null){
+                entity.setPassword(passwordEncoder.encode("123456"));
+            }
+            // 【编辑场景】dto没传密码：不处理，保留数据库原来的password
         }
 
         this.saveOrUpdate(entity);
@@ -105,7 +110,6 @@ public class NodeInfoServiceImpl extends ServiceImpl<NodeInfoMapper, NodeInfo> i
             case 3 -> "冷冻加工企业";
             case 4 -> "批发商";
             case 5 -> "零售商";
-
             default -> "";
         };
         vo.setTypeName(typeName);

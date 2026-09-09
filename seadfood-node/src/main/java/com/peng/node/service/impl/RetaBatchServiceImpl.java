@@ -7,19 +7,23 @@ import com.peng.node.entity.WholBatch;
 import com.peng.node.mapper.RetaBatchMapper;
 import com.peng.node.mapper.WholBatchMapper;
 import com.peng.node.service.RetaBatchService;
+import com.peng.node.vo.SourceBatchVO;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 零售商批号业务实现类
+ * 业务定位：整条溯源链路末端节点，上游为批发商whol_batch，无下游业务
+ * 完整链路：海水养殖/捕捞 → 冷冻加工 → 批发商 → 零售商
  */
 @Service
 public class RetaBatchServiceImpl extends ServiceImpl<RetaBatchMapper, RetaBatch> implements RetaBatchService {
 
     /**
-     * 批发商批号Mapper，新增时校验上游批发商批号合法性
+     * 批发商批号Mapper，新增时校验上游批发商批号合法性、下拉查询可用原料批号
      */
     @Resource
     private WholBatchMapper wholBatchMapper;
@@ -44,7 +48,7 @@ public class RetaBatchServiceImpl extends ServiceImpl<RetaBatchMapper, RetaBatch
      */
     @Override
     public void addBatch(RetaBatch retaBatch, Integer nodeId) {
-        // 1.获取上游批发商批号主键
+        // 1.获取上游批发商批号主键wbId
         Integer sourceWbId = retaBatch.getWbId();
         WholBatch sourceWholBatch = wholBatchMapper.selectById(sourceWbId);
         if(sourceWholBatch == null){
@@ -54,13 +58,13 @@ public class RetaBatchServiceImpl extends ServiceImpl<RetaBatchMapper, RetaBatch
         if(!sourceWholBatch.getState().equals(3)){
             throw new RuntimeException("上游批发商批号尚未确认，无法创建零售商批号");
         }
-        // 3.强制绑定当前登录零售商企业id，防止前端篡改
+        // 3.强制绑定当前登录零售商企业id，防止前端篡改实现数据权限隔离
         retaBatch.setNodeId(nodeId);
-        // 4.默认状态为1‑新建，溯源码与二维码等待审核通过后自动生成
+        // 4.默认状态为1‑新建，溯源码与二维码等待上游批发商审核通过后自动生成
         if(retaBatch.getState() == null){
             retaBatch.setState(1);
         }
-        // 新增时溯源标识与二维码置空，审核确认之后赋值
+        // 新增时溯源标识与二维码置空，审核确认之后由批发商模块赋值
         retaBatch.setSourceId(null);
         retaBatch.setSourceQr(null);
         this.save(retaBatch);
@@ -77,15 +81,15 @@ public class RetaBatchServiceImpl extends ServiceImpl<RetaBatchMapper, RetaBatch
         if(dbBatch == null){
             throw new RuntimeException("零售商批号不存在");
         }
-        // 数据权限校验：只能操作本企业批号
+        // 数据权限校验：只能操作本企业名下批号
         if(!dbBatch.getNodeId().equals(nodeId)){
             throw new RuntimeException("无权操作该批号");
         }
-        // 仅新建状态支持修改
+        // 仅新建状态支持修改批号信息
         if(!dbBatch.getState().equals(1)){
             throw new RuntimeException("只有新建状态批号可以修改");
         }
-        // 强制回填企业id
+        // 强制回填所属零售商企业id
         retaBatch.setNodeId(nodeId);
         this.updateById(retaBatch);
     }
@@ -149,5 +153,30 @@ public class RetaBatchServiceImpl extends ServiceImpl<RetaBatchMapper, RetaBatch
         // 修改批号状态为待确认，等待上游批发商审核
         dbBatch.setState(2);
         this.updateById(dbBatch);
+    }
+
+    /**
+     * 根据上游批发商企业ID，下拉查询该企业【state=3已确认】的批发商批号
+     * 用于新增零售商页面二级联动下拉选择上游原料
+     * @param sourceNodeId 上游批发商企业编号
+     * @return 上游原料下拉VO列表
+     */
+    @Override
+    public List<SourceBatchVO> getUpstreamWholBatchByNodeId(Integer sourceNodeId) {
+        QueryWrapper<WholBatch> queryWrapper = new QueryWrapper<>();
+        // 查询指定批发商企业，并且状态=3已确认的批发批号
+        queryWrapper.eq("node_id", sourceNodeId);
+        queryWrapper.eq("state", 3);
+        List<WholBatch> wholBatchList = wholBatchMapper.selectList(queryWrapper);
+
+        List<SourceBatchVO> voList = new ArrayList<>();
+        for (WholBatch batch : wholBatchList) {
+            SourceBatchVO vo = new SourceBatchVO();
+            vo.setSourceBatchId(batch.getWbId());
+            vo.setBatchId(batch.getBatchId());
+            vo.setType(batch.getType());
+            voList.add(vo);
+        }
+        return voList;
     }
 }

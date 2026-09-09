@@ -20,7 +20,7 @@ import java.util.List;
 public class FarmSeaBatchServiceImpl extends ServiceImpl<FarmSeaBatchMapper, FarmSeaBatch> implements FarmSeaBatchService {
 
     /**
-     * 冷冻加工批号Mapper，用于更新加工批号状态
+     * 冷冻加工批号Mapper，用于查询、更新加工批号状态
      */
     @Resource
     private ProcessBatchMapper processBatchMapper;
@@ -151,4 +151,31 @@ public class FarmSeaBatchServiceImpl extends ServiceImpl<FarmSeaBatchMapper, Far
         processBatch.setState(3);
         processBatchMapper.updateById(processBatch);
     }
+
+    /**
+     * 查询当前养殖企业下【待确认】的冷冻加工进场申请列表
+     * 查询逻辑：
+     * 1.先查出当前企业所有养殖批号ID集合
+     * 2.关联查询加工表+node_info表，sourceBatchId属于这批批号 并且 state=2（待确认）的数据
+     * @param nodeId 当前登录养殖企业ID
+     * @return 待审核加工申请单（携带加工企业nodeName）
+     */
+    @Override
+    public List<ProcessBatch> getProcessApplyList(Integer nodeId) {
+        //1. 获取当前养殖企业全部养殖批号
+        QueryWrapper<FarmSeaBatch> farmWrapper = new QueryWrapper<>();
+        farmWrapper.eq("node_id", nodeId);
+        List<FarmSeaBatch> farmList = this.list(farmWrapper);
+        if(farmList.isEmpty()){
+            return List.of();
+        }
+        //收集本企业所有养殖批号主键
+        List<Integer> fsbIdList = farmList.stream()
+                .map(FarmSeaBatch::getFsbId)
+                .toList();
+
+        //2. 调用mapper自定义方法，关联node_info查询加工企业名称
+        return processBatchMapper.selectProcessApplyList(fsbIdList);
+    }
+
 }

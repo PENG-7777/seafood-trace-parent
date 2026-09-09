@@ -2,10 +2,14 @@ package com.peng.node.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.peng.node.entity.RetaBatch;
+import com.peng.node.vo.SourceBatchVO;
+
 import java.util.List;
 
 /**
  * 零售商批号业务接口层
+ * 业务定位：整条溯源链路末端节点，上游为批发商whol_batch，无下游业务
+ * 完整链路：海水养殖/捕捞 → 冷冻加工 → 批发商 → 零售商
  */
 public interface RetaBatchService extends IService<RetaBatch> {
 
@@ -51,4 +55,12 @@ public interface RetaBatchService extends IService<RetaBatch> {
      * @param nodeId 当前登录零售商企业id
      */
     void sendConfirmRequest(Integer rbId, Integer nodeId);
+
+    /**
+     * 根据上游批发商企业ID，下拉查询该企业【state=3已确认】的批发商批号
+     * 用于新增零售商页面二级联动下拉选择上游原料
+     * @param sourceNodeId 上游批发商企业编号
+     * @return 上游原料下拉VO列表
+     */
+    List<SourceBatchVO> getUpstreamWholBatchByNodeId(Integer sourceNodeId);
 }
