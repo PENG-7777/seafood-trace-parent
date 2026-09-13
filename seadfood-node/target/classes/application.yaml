@@ -16,5 +16,5 @@ mybatis-plus:
 
 jwt:
   secret: c2VhZm9vZG5vZGVzZWNyZXQxMjM0NTY3ODkwMTIzNDU2Nzg5MA==
-  expire-time: 86400000 # 24???????
+  expire-time: 86400000
 

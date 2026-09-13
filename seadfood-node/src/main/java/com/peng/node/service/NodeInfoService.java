@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.peng.node.entity.NodeInfo;
 import com.peng.node.vo.NodeLoginVO;
 import com.peng.node.vo.UpdatePwdVO;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
