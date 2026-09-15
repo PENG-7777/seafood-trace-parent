@@ -1,50 +1,124 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.peng.admin.mapper.NodeInfoMapper">
 
-    <select id="selectNodePage" resultType="com.peng.admin.vo.NodeVO">
+    <resultMap id="NodeVOResultMap" type="com.peng.admin.vo.NodeVO">
+        <id column="node_id" property="nodeId"/>
+        <result column="code" property="code"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="type_name" property="typeName"/>
+        <result column="prov_id" property="provId"/>
+        <result column="prov_name" property="provName"/>
+        <result column="city_id" property="cityId"/>
+        <result column="city_name" property="cityName"/>
+        <result column="address" property="address"/>
+        <result column="business_id" property="businessId"/>
+        <result column="fishing_lic" property="fishingLic"/>
+        <result column="aquaculture_lic" property="aquacultureLic"/>
+        <result column="food_business_lic" property="foodBusinessLic"/>
+        <result column="corporation" property="corporation"/>
+        <result column="telephone" property="telephone"/>
+        <result column="reg_date" property="regDate"/>
+        <result column="status" property="status"/>
+        <result column="status_name" property="statusName"/>
+        <result column="remarks" property="remarks"/>
+    </resultMap>
+
+    <!-- 分页列表查询 -->
+    <select id="selectNodePage" resultMap="NodeVOResultMap">
         SELECT
-        ni.node_id,
-        ni.code,
-        ni.name,
-        ni.type,
-        CASE ni.type
+        n.node_id,
+        n.code,
+        n.name,
+        n.type,
+        CASE n.type
         WHEN 1 THEN '捕捞企业'
         WHEN 2 THEN '养殖企业'
         WHEN 3 THEN '冷冻加工企业'
         WHEN 4 THEN '批发商'
         WHEN 5 THEN '零售商'
+        ELSE '未知'
         END AS type_name,
-        ni.prov_id,
+        n.prov_id,
         p.prov_name,
-        ni.city_id,
+        n.city_id,
         c.city_name,
-        ni.address,
-        ni.business_id,
-        ni.fishing_lic,
-        ni.aquaculture_lic,
-        ni.food_business_lic,
-        ni.corporation,
-        ni.telephone,
-        ni.reg_date,
-        ni.remarks
-        FROM node_info ni
-        LEFT JOIN province p ON ni.prov_id = p.prov_id
-        LEFT JOIN city c ON ni.city_id = c.city_id
+        n.address,
+        n.business_id,
+        n.fishing_lic,
+        n.aquaculture_lic,
+        n.food_business_lic,
+        n.corporation,
+        n.telephone,
+        n.reg_date,
+        n.status,
+        CASE n.status
+        WHEN 1 THEN '待审核'
+        WHEN 2 THEN '已通过'
+        WHEN 3 THEN '禁用'
+        ELSE '未知'
+        END AS status_name,
+        n.remarks
+        FROM node_info n
+        LEFT JOIN province p ON n.prov_id = p.prov_id
+        LEFT JOIN city c ON n.city_id = c.city_id
         <where>
             <if test="name != null and name != ''">
-                AND ni.name LIKE CONCAT('%',#{name},'%')
+                AND n.name LIKE CONCAT('%', #{name}, '%')
             </if>
             <if test="type != null">
-                AND ni.type = #{type}
+                AND n.type = #{type}
             </if>
-            <!-- 新增省份筛选：根据prov_id过滤节点企业 -->
             <if test="provId != null">
-                AND ni.prov_id = #{provId}
+                AND n.prov_id = #{provId}
+            </if>
+            <if test="status != null">
+                AND n.status = #{status}
             </if>
         </where>
-        ORDER BY ni.node_id DESC
+        ORDER BY n.node_id DESC
+    </select>
+
+    <!-- 详情查询 -->
+    <select id="selectNodeDetailById" resultMap="NodeVOResultMap">
+        SELECT
+            n.node_id,
+            n.code,
+            n.name,
+            n.type,
+            CASE n.type
+                WHEN 1 THEN '捕捞企业'
+                WHEN 2 THEN '养殖企业'
+                WHEN 3 THEN '冷冻加工企业'
+                WHEN 4 THEN '批发商'
+                WHEN 5 THEN '零售商'
+                ELSE '未知'
+                END AS type_name,
+            n.prov_id,
+            p.prov_name,
+            n.city_id,
+            c.city_name,
+            n.address,
+            n.business_id,
+            n.fishing_lic,
+            n.aquaculture_lic,
+            n.food_business_lic,
+            n.corporation,
+            n.telephone,
+            n.reg_date,
+            n.status,
+            CASE n.status
+                WHEN 1 THEN '待审核'
+                WHEN 2 THEN '已通过'
+                WHEN 3 THEN '禁用'
+                ELSE '未知'
+                END AS status_name,
+            n.remarks
+        FROM node_info n
+                 LEFT JOIN province p ON n.prov_id = p.prov_id
+                 LEFT JOIN city c ON n.city_id = c.city_id
+        WHERE n.node_id = #{nodeId}
     </select>
 
 </mapper>

@@ -2,9 +2,13 @@ package com.peng.node.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.peng.node.entity.City;
 import com.peng.node.entity.NodeInfo;
+import com.peng.node.entity.Province;
 import com.peng.node.exception.BusinessException;
+import com.peng.node.mapper.CityMapper;
 import com.peng.node.mapper.NodeInfoMapper;
+import com.peng.node.mapper.ProvinceMapper;
 import com.peng.node.service.NodeInfoService;
 import com.peng.node.util.JwtUtil;
 import com.peng.node.util.ResultCode;
@@ -12,9 +16,9 @@ import com.peng.node.vo.NodeLoginVO;
 import com.peng.node.vo.UpdatePwdVO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,14 +43,24 @@ public class NodeInfoServiceImpl extends ServiceImpl<NodeInfoMapper, NodeInfo> i
     @Resource
     private JwtUtil jwtUtil;
 
-    @Autowired
-    private NodeInfoMapper nodeInfoMapper;
+    /**
+     * 省份Mapper，用于注册时校验省份ID合法性
+     */
+    @Resource
+    private ProvinceMapper provinceMapper;
+
+    /**
+     * 城市Mapper，用于注册时校验城市ID合法性、校验城市归属省份
+     */
+    @Resource
+    private CityMapper cityMapper;
 
     /**
      * 企业登录逻辑
      * 1. QueryWrapper 根据code查询企业数据
      * 2. BCrypt比对前端明文密码和数据库加密密码
-     * 3. 校验通过后生成JWT token返回前端
+     * 3. 校验企业注册状态，仅已通过状态允许登录
+     * 4. 校验通过后生成JWT token返回前端
      * @param loginVO 登录表单参数（code账号、password明文密码）
      * @return token、nodeId、nodeType、nodeName 登录信息
      */
@@ -70,6 +84,17 @@ public class NodeInfoServiceImpl extends ServiceImpl<NodeInfoMapper, NodeInfo> i
             throw new BusinessException(ResultCode.LOGIN_WRONG);
         }
 
+        // 校验企业注册状态：仅已通过(2)允许登录
+        Integer status = nodeInfo.getStatus();
+        if (status == 1) {
+            log.warn("节点登录拒绝：编码【{}】账号待审核，暂无法登录", loginVO.getCode());
+            throw new BusinessException(ResultCode.ACCOUNT_PENDING);
+        }
+        if (status == 3) {
+            log.warn("节点登录拒绝：编码【{}】账号已被禁用，无法登录", loginVO.getCode());
+            throw new BusinessException(ResultCode.ACCOUNT_DISABLED);
+        }
+
         log.info("节点登录成功，企业编码：{}，企业名称：{}",loginVO.getCode(),nodeInfo.getName());
         // 生成token，载荷存放nodeId、企业类型
         String token = jwtUtil.generateToken(nodeInfo.getNodeId(), nodeInfo.getType());
@@ -81,6 +106,66 @@ public class NodeInfoServiceImpl extends ServiceImpl<NodeInfoMapper, NodeInfo> i
         resultMap.put("nodeType",nodeInfo.getType());
         resultMap.put("nodeName",nodeInfo.getName());
         return resultMap;
+    }
+
+    /**
+     * 节点企业注册
+     * 1. 校验登录编码是否已存在，保证账号唯一
+     * 2. 校验省份ID是否存在，防止非法外键
+     * 3. 校验城市ID是否存在，防止非法外键
+     * 4. 校验城市归属省份是否匹配，避免跨省份选择城市
+     * 5. BCrypt加密登录密码
+     * 6. 自动设置注册状态为1-待审核，节点端无审核权限
+     * @param nodeInfo 注册企业信息
+     */
+    @Override
+    public void register(NodeInfo nodeInfo) {
+        // 校验账号唯一性
+        QueryWrapper<NodeInfo> checkWrapper = new QueryWrapper<>();
+        checkWrapper.eq("code", nodeInfo.getCode());
+        Long count = this.count(checkWrapper);
+        if (count > 0) {
+            log.error("节点注册失败：登录编码【{}】已存在", nodeInfo.getCode());
+            throw new BusinessException(ResultCode.ACCOUNT_EXIST);
+        }
+
+        // ==========新增校验：省份ID合法性==========
+        Integer provId = nodeInfo.getProvId();
+        if(provId == null){
+            throw new BusinessException("请选择所属省份");
+        }
+        Province province = provinceMapper.selectById(provId);
+        if(province == null){
+            log.error("注册失败：省份ID【{}】不存在", provId);
+            throw new BusinessException("选择的省份信息非法");
+        }
+
+        // ==========新增校验：城市ID合法性 + 城市归属省份校验==========
+        Integer cityId = nodeInfo.getCityId();
+        if(cityId == null){
+            throw new BusinessException("请选择所属城市");
+        }
+        City city = cityMapper.selectById(cityId);
+        if(city == null){
+            log.error("注册失败：城市ID【{}】不存在", cityId);
+            throw new BusinessException("选择的城市信息非法");
+        }
+        // 校验：该城市必须属于选中的省份，防止前端篡改参数传入跨省份城市
+        if(!city.getProvId().equals(provId)){
+            log.error("注册失败：城市【{}】不属于省份【{}】", cityId, provId);
+            throw new BusinessException("城市与所属省份不匹配");
+        }
+
+        // BCrypt加密登录密码
+        String encryptPwd = passwordEncoder.encode(nodeInfo.getPassword());
+        nodeInfo.setPassword(encryptPwd);
+
+        // 强制设置注册状态：待审核，节点端无法自行修改审核状态
+        nodeInfo.setStatus(1);
+
+        // 保存企业注册信息
+        this.save(nodeInfo);
+        log.info("节点企业注册成功，企业编码：{}，企业名称：{}，状态：待审核", nodeInfo.getCode(), nodeInfo.getName());
     }
 
     /**
@@ -126,11 +211,13 @@ public class NodeInfoServiceImpl extends ServiceImpl<NodeInfoMapper, NodeInfo> i
      * 4批发商 → 上游：3冷冻加工
      * 5零售商 → 上游：4批发商
      * @param targetNodeType 当前登录企业类型
-     * @return 上游企业下拉列表
+     * @return 上游企业下拉列表（仅已审核通过的企业）
      */
     @Override
     public List<NodeInfo> getUpstreamNodeList(Integer targetNodeType) {
         QueryWrapper<NodeInfo> wrapper = new QueryWrapper<>();
+        // 仅查询已审核通过的上游企业，过滤待审核、禁用账号
+        wrapper.eq("status", 2);
         switch (targetNodeType) {
             case 3:
                 // 冷冻加工：上游捕捞、养殖
@@ -147,6 +234,6 @@ public class NodeInfoServiceImpl extends ServiceImpl<NodeInfoMapper, NodeInfo> i
             default:
                 throw new RuntimeException("当前企业类型不允许选择上游原料");
         }
-        return nodeInfoMapper.selectList(wrapper);
+        return this.list(wrapper);
     }
 }

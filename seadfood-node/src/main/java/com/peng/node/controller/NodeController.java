@@ -10,13 +10,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Map;
 
 /**
  * 流通节点企业控制器
- * 接口：企业登录、修改密码
- * 登录接口被JwtInterceptor放行无需token；修改密码需要携带token鉴权
+ * 接口：企业注册、企业登录、修改密码、上游企业查询
+ * 注册/登录接口被JwtInterceptor放行无需token；其余接口需要携带token鉴权
  */
 @Slf4j
 @RestController
@@ -27,7 +28,23 @@ public class NodeController {
     private NodeInfoService nodeInfoService;
 
     /**
+     * 流通节点企业注册接口
+     * 注册后默认状态为1-待审核，需管理员后台审核通过后方可登录
+     * 无需token鉴权，开放访问
+     * @Valid 开启实体字段校验
+     * @param nodeInfo 注册企业信息
+     * @return Result 统一返回体，无返回数据
+     */
+    @PostMapping("/register")
+    public Result<Void> register(@Valid @RequestBody NodeInfo nodeInfo) {
+        log.info("Controller接收企业注册参数，企业编码 = {}，企业名称 = {}", nodeInfo.getCode(), nodeInfo.getName());
+        nodeInfoService.register(nodeInfo);
+        return Result.ok();
+    }
+
+    /**
      * 流通企业登录接口
+     * 仅状态为已通过的账号允许登录，待审核、禁用账号均拒绝登录
      * @Valid 开启VO字段非空校验
      * @RequestBody 接收前端JSON格式请求体
      * @param loginVO 登录参数 code登录编码、password明文密码
@@ -57,6 +74,7 @@ public class NodeController {
 
     /**
      * 获取下游企业对应的全部上游企业下拉列表（一级下拉）
+     * 仅返回已审核通过的上游企业，过滤待审核、禁用账号
      * @param targetNodeType 当前登录企业类型 3/4/5
      * @return 上游企业集合
      */

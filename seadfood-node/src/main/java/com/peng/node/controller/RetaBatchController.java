@@ -3,6 +3,7 @@ package com.peng.node.controller;
 import com.peng.node.entity.RetaBatch;
 import com.peng.node.service.RetaBatchService;
 import com.peng.node.util.Result;
+import com.peng.node.util.TraceIdUtil;
 import com.peng.node.vo.SourceBatchVO;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -108,5 +109,16 @@ public class RetaBatchController {
     public Result<List<SourceBatchVO>> getUpstreamWholBatch(@PathVariable Integer sourceNodeId){
         List<SourceBatchVO> voList = retaBatchService.getUpstreamWholBatchByNodeId(sourceNodeId);
         return Result.ok(voList);
+    }
+
+    /**
+     * 生成溯源二维码base64
+     * @param sourceId 溯源编号
+     * @return base64字符串（不带data:image前缀）
+     */
+    @GetMapping("/qrCode")
+    public Result<String> getQrCode(@RequestParam String sourceId){
+        String base64 = TraceIdUtil.generateQrCodeBase64(sourceId);
+        return Result.ok(base64);
     }
 }

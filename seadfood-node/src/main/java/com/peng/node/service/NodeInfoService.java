@@ -4,8 +4,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.peng.node.entity.NodeInfo;
 import com.peng.node.vo.NodeLoginVO;
 import com.peng.node.vo.UpdatePwdVO;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +21,13 @@ public interface NodeInfoService extends IService<NodeInfo> {
     Map<String,Object> login(NodeLoginVO loginVO);
 
     /**
+     * 节点企业注册
+     * 注册后默认状态为1-待审核，需管理员后台审核通过后方可登录
+     * @param nodeInfo 注册企业信息
+     */
+    void register(NodeInfo nodeInfo);
+
+    /**
      * 修改企业密码
      * @param nodeId 当前登录企业id
      * @param updatePwdVO 修改密码参数：旧密码、新密码、确认密码
@@ -35,5 +40,4 @@ public interface NodeInfoService extends IService<NodeInfo> {
      * @return 上游企业列表
      */
     List<NodeInfo> getUpstreamNodeList(Integer targetNodeType);
-
 }

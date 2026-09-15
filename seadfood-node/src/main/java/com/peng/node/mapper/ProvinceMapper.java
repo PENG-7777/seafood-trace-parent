@@ -1,5 +1,6 @@
 package com.peng.node.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.peng.node.entity.Province;
 import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
  * 负责省份字典数据数据库查询操作
  */
 @Mapper
-public interface ProvinceMapper {
+public interface ProvinceMapper extends BaseMapper<Province> {
 
     /**
      * 查询全部省份列表

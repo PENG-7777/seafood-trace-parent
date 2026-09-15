@@ -8,7 +8,6 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +22,7 @@ public class TraceIdUtil {
     /**
      * 生成唯一溯源标识码source_id
      * UUID去掉横杠后截取前10位大写字符串，最大长度10，适配VARCHAR(20)
-     * @return 溯源标识码，例："F2E8D4A17B3C449092AB"
+     * @return 溯源标识码，例："F2E8D4A17B"
      */
     public static String generateSourceId() {
         String uuidStr = UUID.randomUUID().toString();
@@ -34,17 +33,23 @@ public class TraceIdUtil {
 
     /**
      * 根据溯源编号生成二维码图片，返回Base64字符串（不带data:image前缀）
+     * 二维码内容为sourceId字符串，扫码得到编号，需要前端拼接接口地址访问
      * @param sourceId 溯源标识码
-     * @return 二维码Base64字符串
+     * @return 二维码Base64字符串（无data:image/png;base64,前缀）
      */
     public static String generateQrCodeBase64(String sourceId) {
+        if (sourceId == null || sourceId.isBlank()) {
+            throw new IllegalArgumentException("溯源编号不能为空");
+        }
         int width = 300;
         int height = 300;
         Map<EncodeHintType, Object> hints = new HashMap<>();
-        // 纠错等级
+        // 纠错等级M，容错中等
         hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.M);
         // 编码格式
         hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
+        // 边距
+        hints.put(EncodeHintType.MARGIN, 1);
 
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             QRCodeWriter writer = new QRCodeWriter();

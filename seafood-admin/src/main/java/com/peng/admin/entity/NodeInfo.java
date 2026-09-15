@@ -10,7 +10,7 @@ import java.time.LocalDate;
 /**
  * 节点企业实体类
  * 对应数据库表：node_info 节点企业信息表：捕捞企业、养殖企业、批发商、零售商
- * 企业类型：1捕捞企业,2养殖企业,3批发商,4零售商
+ * 企业类型：1捕捞企业,2养殖企业,3冷冻加工企业,4批发商,5零售商
  */
 @Data
 @TableName("node_info")
@@ -38,7 +38,7 @@ public class NodeInfo {
     private String name;
 
     /**
-     * 企业类型:1捕捞企业,2养殖企业,3冷冻企业,4批发商,5零售商
+     * 企业类型:1捕捞企业,2养殖企业,3冷冻加工企业,4批发商,5零售商
      */
     private Integer type;
 
@@ -73,7 +73,7 @@ public class NodeInfo {
     private String aquacultureLic;
 
     /**
-     * 食品经营许可证编号(批发、零售企业必填)
+     * 食品经营许可证编号(加工、批发、零售企业必填)
      */
     private String foodBusinessLic;
 
@@ -93,8 +93,12 @@ public class NodeInfo {
     private LocalDate regDate;
 
     /**
+     * 企业注册状态：1-待审核，2-已通过，3-禁用
+     */
+    private Integer status;
+
+    /**
      * 备注信息
      */
     private String remarks;
 }
-

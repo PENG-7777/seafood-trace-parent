@@ -11,11 +11,18 @@ public enum ResultCode {
     PARAM_ERROR(400, "请求参数校验错误"),
     NOT_FOUND(404, "请求资源不存在"),
     BUSINESS_ERROR(600, "业务逻辑处理异常"),
-    LOGIN_WRONG(2001, "登录编码或密码错误");
+    LOGIN_WRONG(2001, "登录编码或密码错误"),
+    ACCOUNT_EXIST(2002, "登录编码已存在，请勿重复注册"),
+    ACCOUNT_PENDING(2003, "账号待审核，请等待管理员审核通过"),
+    ACCOUNT_DISABLED(2004, "账号已被禁用，请联系管理员");
 
-    /** 业务状态码 */
+    /**
+     * 业务状态码
+     */
     private final int code;
-    /** 状态描述信息 */
+    /**
+     * 状态描述信息
+     */
     private final String msg;
 
     ResultCode(int code, String msg) {

@@ -13,4 +13,10 @@ public class BusinessException extends RuntimeException {
     public ResultCode getResultCode() {
         return resultCode;
     }
+
+    // 新增重载构造：直接传入自定义字符串消息
+    public BusinessException(String message) {
+        super(message);
+        this.resultCode = null;
+    }
 }

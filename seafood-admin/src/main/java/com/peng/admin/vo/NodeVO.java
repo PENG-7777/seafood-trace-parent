@@ -1,7 +1,6 @@
 package com.peng.admin.vo;
 
 import lombok.Data;
-
 import java.time.LocalDate;
 
 /**
@@ -28,7 +27,7 @@ public class NodeVO {
     private String name;
 
     /**
-     * 企业类型：1捕捞企业,2养殖企业,3批发商,4零售商
+     * 企业类型：1捕捞企业,2养殖企业,3冷冻加工企业,4批发商,5零售商
      */
     private Integer type;
 
@@ -98,9 +97,17 @@ public class NodeVO {
     private LocalDate regDate;
 
     /**
+     * 企业注册状态：1-待审核，2-已通过，3-禁用
+     */
+    private Integer status;
+
+    /**
+     * 企业注册状态中文名称
+     */
+    private String statusName;
+
+    /**
      * 备注信息
      */
     private String remarks;
-
 }
-

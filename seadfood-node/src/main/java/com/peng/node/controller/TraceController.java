@@ -2,6 +2,7 @@ package com.peng.node.controller;
 
 import com.peng.node.service.TraceService;
 import com.peng.node.util.Result;
+import com.peng.node.util.TraceIdUtil;
 import com.peng.node.vo.TraceVO;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +23,7 @@ public class TraceController {
 
     /**
      * 根据溯源标识码查询整条产业链溯源信息
-     * @param sourceId 32位溯源编号
+     * @param sourceId 溯源编号
      * @return Result<TraceVO> 完整链路数据
      */
     @GetMapping("/query")
@@ -30,4 +31,6 @@ public class TraceController {
         TraceVO traceVO = traceService.getTraceInfoBySourceId(sourceId);
         return Result.ok(traceVO);
     }
+
+
 }

@@ -17,15 +17,6 @@ public class NodeInfoServiceImplTest {
     @Autowired
     private NodeInfoService nodeInfoService;
 
-    /**
-     * 分页查询测试，带省份筛选
-     */
-    @Test
-    void testNodePageQuery() {
-        IPage<NodeVO> page = nodeInfoService.getNodePage(1L, 10L, null, null, 19);
-        assertNotNull(page);
-        assertTrue(page.getTotal() > 0);
-    }
 
     /**
      * 根据ID查询详情

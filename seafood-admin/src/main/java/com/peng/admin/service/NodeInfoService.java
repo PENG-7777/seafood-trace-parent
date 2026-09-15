@@ -1,7 +1,6 @@
 package com.peng.admin.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.peng.admin.dto.NodeSaveDTO;
 import com.peng.admin.entity.NodeInfo;
@@ -9,6 +8,7 @@ import com.peng.admin.vo.NodeVO;
 
 /**
  * 流通节点企业业务接口
+ * 继承MyBatis-Plus IService，内置所有单表业务能力
  */
 public interface NodeInfoService extends IService<NodeInfo> {
 
@@ -19,9 +19,10 @@ public interface NodeInfoService extends IService<NodeInfo> {
      * @param name 企业名称模糊关键词
      * @param type 企业类型筛选
      * @param provId 省份编号筛选
+     * @param status 企业注册状态筛选：1-待审核，2-已通过，3-禁用
      * @return 分页VO
      */
-    IPage<NodeVO> getNodePage(Long pageNum, Long pageSize, String name, Integer type, Integer provId);
+    IPage<NodeVO> getNodePage(Long pageNum, Long pageSize, String name, Integer type, Integer provId, Integer status);
 
     /**
      * 新增/编辑保存企业信息
@@ -35,4 +36,11 @@ public interface NodeInfoService extends IService<NodeInfo> {
      * @return NodeVO
      */
     NodeVO getNodeDetailById(Integer nodeId);
+
+    /**
+     * 修改企业注册状态（审核通过、禁用、退回待审核）
+     * @param nodeId 企业id
+     * @param status 目标状态：1-待审核，2-已通过，3-禁用
+     */
+    void updateStatus(Integer nodeId, Integer status);
 }

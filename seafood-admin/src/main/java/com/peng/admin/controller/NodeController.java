@@ -28,6 +28,7 @@ public class NodeController {
      * @param name 企业名称模糊检索（可选）
      * @param type 企业类型筛选（可选：1捕捞/2养殖/3加工/4批发/5零售）
      * @param provId 省份编号筛选（可选）
+     * @param status 企业注册状态筛选（可选：1待审核/2已通过/3禁用）
      * @return 分页VO数据
      */
     @GetMapping("/page")
@@ -35,8 +36,9 @@ public class NodeController {
                                       @RequestParam(defaultValue = "10") Long pageSize,
                                       @RequestParam(required = false) String name,
                                       @RequestParam(required = false) Integer type,
-                                      @RequestParam(required = false) Integer provId) {
-        IPage<NodeVO> pageResult = nodeInfoService.getNodePage(pageNum, pageSize, name, type, provId);
+                                      @RequestParam(required = false) Integer provId,
+                                      @RequestParam(required = false) Integer status) {
+        IPage<NodeVO> pageResult = nodeInfoService.getNodePage(pageNum, pageSize, name, type, provId, status);
         return ResultUtil.success(pageResult);
     }
 
@@ -60,6 +62,20 @@ public class NodeController {
     public Result<NodeVO> detail(@PathVariable Integer nodeId) {
         NodeVO vo = nodeInfoService.getNodeDetailById(nodeId);
         return ResultUtil.success(vo);
+    }
+
+    /**
+     * 修改企业注册状态
+     * 用于审核通过、禁用、退回待审核等操作
+     * @param nodeId 企业主键id
+     * @param status 目标状态：1-待审核，2-已通过，3-禁用
+     * @return 操作结果
+     */
+    @PutMapping("/status/{nodeId}")
+    public Result<Void> updateStatus(@PathVariable Integer nodeId,
+                                     @RequestParam Integer status) {
+        nodeInfoService.updateStatus(nodeId, status);
+        return ResultUtil.success();
     }
 
     /**

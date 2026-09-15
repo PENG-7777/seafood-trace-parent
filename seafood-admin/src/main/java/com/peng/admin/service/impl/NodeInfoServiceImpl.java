@@ -1,5 +1,6 @@
 package com.peng.admin.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -8,111 +9,64 @@ import com.peng.admin.entity.NodeInfo;
 import com.peng.admin.mapper.NodeInfoMapper;
 import com.peng.admin.service.NodeInfoService;
 import com.peng.admin.vo.NodeVO;
-import jakarta.annotation.Resource;
+import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 /**
  * 流通节点企业业务实现类
+ * 继承MyBatis-Plus ServiceImpl，内置baseMapper，无需手动注入
  */
 @Service
 public class NodeInfoServiceImpl extends ServiceImpl<NodeInfoMapper, NodeInfo> implements NodeInfoService {
 
-    @Resource
-    private NodeInfoMapper nodeInfoMapper;
-
+    /**
+     * BCrypt密码加密工具
+     */
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     /**
-     * 分页查询企业列表（新增省份筛选provId）
+     * 新增企业默认初始密码
      */
+    private static final String DEFAULT_INIT_PASSWORD = "123456";
+
     @Override
-    public IPage<NodeVO> getNodePage(Long pageNum, Long pageSize, String name, Integer type, Integer provId) {
+    public IPage<NodeVO> getNodePage(Long pageNum, Long pageSize, String name, Integer type, Integer provId, Integer status) {
+        // 构建MP标准分页对象
         Page<NodeVO> page = new Page<>(pageNum, pageSize);
-        return nodeInfoMapper.selectNodePage(page, name, type, provId);
+        // 调用baseMapper执行自定义多表分页查询
+        return baseMapper.selectNodePage(page, name, type, provId, status);
     }
 
-    /**
-     * 新增 / 修改企业
-     */
     @Override
     public void saveOrUpdateNode(NodeSaveDTO dto) {
-        NodeInfo entity = new NodeInfo();
-        // 编辑模式：主键赋值，从数据库查询旧数据
-        if(dto.getNodeId() != null){
-            entity = this.getById(dto.getNodeId());
+        NodeInfo nodeInfo = new NodeInfo();
+        BeanUtils.copyProperties(dto, nodeInfo);
+
+        if (dto.getNodeId() == null) {
+            // 新增场景：设置加密默认密码 + 默认待审核状态
+            nodeInfo.setPassword(passwordEncoder.encode(DEFAULT_INIT_PASSWORD));
+            nodeInfo.setStatus(1);
+            this.save(nodeInfo);
+        } else {
+            // 编辑场景：MP默认更新策略为 NOT_NULL，null 字段不会被更新到数据库
+            // 密码字段不在DTO中，复制后为null，自动忽略更新；status为空也自动忽略
+            this.updateById(nodeInfo);
         }
-
-        // 基础字段赋值
-        entity.setNodeId(dto.getNodeId());
-        entity.setCode(dto.getCode());
-        entity.setName(dto.getName());
-        entity.setType(dto.getType());
-        entity.setProvId(dto.getProvId());
-        entity.setCityId(dto.getCityId());
-        entity.setAddress(dto.getAddress());
-        entity.setBusinessId(dto.getBusinessId());
-        entity.setFishingLic(dto.getFishingLic());
-        entity.setAquacultureLic(dto.getAquacultureLic());
-        entity.setFoodBusinessLic(dto.getFoodBusinessLic());
-        entity.setCorporation(dto.getCorporation());
-        entity.setTelephone(dto.getTelephone());
-        entity.setRegDate(dto.getRegDate());
-        entity.setRemarks(dto.getRemarks());
-
-        // ==========密码逻辑修改============
-        if(StringUtils.hasText(dto.getPassword())){
-            // 前端传入密码，使用传入的密码加密
-            String encryptPwd = passwordEncoder.encode(dto.getPassword());
-            entity.setPassword(encryptPwd);
-        }else{
-            // 【新增场景】dto没有传密码，设置默认密码123456
-            if(dto.getNodeId() == null){
-                entity.setPassword(passwordEncoder.encode("123456"));
-            }
-            // 【编辑场景】dto没传密码：不处理，保留数据库原来的password
-        }
-
-        this.saveOrUpdate(entity);
     }
 
-    /**
-     * 根据ID查询详情VO
-     */
     @Override
     public NodeVO getNodeDetailById(Integer nodeId) {
-        NodeInfo info = this.getById(nodeId);
-        if(info == null){
-            return null;
-        }
-        NodeVO vo = new NodeVO();
-        vo.setNodeId(info.getNodeId());
-        vo.setCode(info.getCode());
-        vo.setName(info.getName());
-        vo.setType(info.getType());
-        vo.setProvId(info.getProvId());
-        vo.setCityId(info.getCityId());
-        vo.setAddress(info.getAddress());
-        vo.setBusinessId(info.getBusinessId());
-        vo.setFishingLic(info.getFishingLic());
-        vo.setAquacultureLic(info.getAquacultureLic());
-        vo.setFoodBusinessLic(info.getFoodBusinessLic());
-        vo.setCorporation(info.getCorporation());
-        vo.setTelephone(info.getTelephone());
-        vo.setRegDate(info.getRegDate());
-        vo.setRemarks(info.getRemarks());
+        // 调用baseMapper执行自定义关联查询
+        return baseMapper.selectNodeDetailById(nodeId);
+    }
 
-        // 翻译类型中文（分页SQL自动处理，详情手动赋值）
-        String typeName = switch (info.getType()){
-            case 1 -> "捕捞企业";
-            case 2 -> "养殖企业";
-            case 3 -> "冷冻加工企业";
-            case 4 -> "批发商";
-            case 5 -> "零售商";
-            default -> "";
-        };
-        vo.setTypeName(typeName);
-        return vo;
+    @Override
+    public void updateStatus(Integer nodeId, Integer status) {
+        // 使用MP LambdaUpdateWrapper，仅更新status字段，避免全表更新风险
+        LambdaUpdateWrapper<NodeInfo> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(NodeInfo::getNodeId, nodeId)
+                .set(NodeInfo::getStatus, status);
+        this.update(updateWrapper);
     }
 }

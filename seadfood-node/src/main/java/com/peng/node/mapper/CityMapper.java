@@ -1,5 +1,6 @@
 package com.peng.node.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.peng.node.entity.City;
 import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
  * 负责城市数据数据库查询操作
  */
 @Mapper
-public interface CityMapper {
+public interface CityMapper extends BaseMapper<City> {
 
     /**
      * 根据省份id查询该省份下所有城市列表
